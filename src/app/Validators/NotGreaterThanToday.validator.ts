@@ -1,0 +1,21 @@
+import { AbstractControl, ValidationErrors } from "@angular/forms";
+
+export function NotGreaterThanToday(control : AbstractControl) : ValidationErrors | null {
+    const date = control.value;
+    if(date) {
+        let inputDate = date;
+        if(typeof(date) == 'string') {
+            const formatDate = date.split('-');
+            inputDate = new Date(parseInt(formatDate[2]), parseInt(formatDate[1]) -1, parseInt(formatDate[0]) );
+        }
+
+        const today = new Date();
+        const diffInMs = inputDate.getTime() - today.getTime();
+        if(diffInMs > 0){
+            return ({
+                NotGreaterThanToday : 'This field should not be greater than today'
+            })
+        }
+    }
+    return null;
+}

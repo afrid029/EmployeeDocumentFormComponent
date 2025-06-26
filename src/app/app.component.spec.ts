@@ -14,16 +14,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'EmploymentDocumentFormComponent' title`, () => {
+  it(`should have the 'FormComponent' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('EmploymentDocumentFormComponent');
+    expect(app.title).toEqual('FormComponent');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, EmploymentDocumentFormComponent');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, FormComponent');
   });
 });
