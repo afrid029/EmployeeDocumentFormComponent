@@ -24,10 +24,17 @@
     }
 }
 
+@mixin p-inputtext-disabled {
+    .p-inputtext:disabled {
+        background-color: $color-bg-onDisabled !important
+    }
+}
+
 
 @mixin prime-inputtext {
     @include p-inputtext();
     @include p-inputtext-focus();
     @include p-inputtext-placeholder();
+    @include p-inputtext-disabled();
 
 }

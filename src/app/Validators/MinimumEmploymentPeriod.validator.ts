@@ -23,7 +23,7 @@ export function MinimumEmploymentPeriod(control : AbstractControl) : ValidationE
         const diffInMs = inputEndDate.getTime() - inputStartDate.getTime()
 
         const diffInMonths = diffInMs / (1000 * 60 * 60 * 24 * 30)
-        if(diffInMonths < 1) {
+        if(diffInMs > 0 && diffInMonths < 1) {
             return ({
                 MinimumEmploymentPeriod : 'The gap between End date and Start Date for Employment should be minimum 1 month'
             })
