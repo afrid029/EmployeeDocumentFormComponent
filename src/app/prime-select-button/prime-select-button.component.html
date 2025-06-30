@@ -5,14 +5,14 @@
     </span>
 
    
-    <p-selectbutton  [formControl]="control" [options]="stateOptions" [size]="size" [allowEmpty]="allowEmpty" optionLabel="label" optionValue="value" />
+    <p-selectbutton  [formControl]="control" [options]="stateOptions" [allowEmpty]="allowEmpty" optionLabel="label" optionValue="value" />
 
     <!-- <small id="sm-text-{{ label }}" *ngIf="hasSmallText">{{ smallText }}</small> -->
 
     @if(isError()) {
 
         <ng-container>
-            <app-prime-error [direction]="direction" [customErrorMessages]="customErrorMessages" [errors]="control.errors"> </app-prime-error>
+            <app-prime-error [direction]="direction" [crossErrorMessages]="crossErrorMessages" [errors]="control.errors"> </app-prime-error>
         </ng-container>
     }
 </div>

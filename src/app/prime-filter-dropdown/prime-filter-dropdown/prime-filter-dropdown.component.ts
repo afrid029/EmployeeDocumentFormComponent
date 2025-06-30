@@ -24,33 +24,47 @@ import { DataLoaderComponent } from '../../data-loader/data-loader.component';
 export class PrimeFilterDropdownComponent<T> extends CustomControlValueAccessorDirective<T> {
   @Input() label: string = '';
   @Input() direction: 'ltr'|'rtl' = 'ltr';
-  @Input() customErrorMessages: Record<string, string> = {};
-  @Input() isRecommendedValue: string = '';
+  // @Input() customErrorMessages: Record<string, string> = {};
+    @Input() customErrors: string[] = [];
+    @Input() isRecommendedValue: string = '';
+    
+    @Input() optionItems = signal<Record<string, string>[]> ([]);
+    @Input() optionValue: string = '';
+    @Input() optionLabel: string = '';
+    @Input() placeHolder: string = '';
+    
+    @Input() hasSmallText: boolean = false;
+    @Input() smallText: string = '';
+    
+    @Input() showClear: boolean = false;
+    @Input() dropdownIcon: string = 'pi pi-chevron-down';
+    
+    @Input() showLabel: boolean = true;
+    
+    @Input() submitted: boolean = false;
+    
+    crossErrorMessages: Record<string, string> = {};
 
-  @Input() optionItems : any[] = [];
-  @Input() optionValue: string = '';
-  @Input() optionLabel: string = '';
-  @Input() placeHolder: string = '';
-
-  @Input() hasSmallText: boolean = false;
-  @Input() smallText: string = '';
-
-  @Input() showClear: boolean = false;
-  @Input() dropdownIcon: string = 'pi pi-chevron-down';
-
-  @Input() showLabel: boolean = true;
-
-  @Input() submitted: boolean = false;
-
-  isError(): boolean {
+  isError(): boolean {    
+   const keys = Object.keys(this.control?.parent?.errors ?? {});
+   this.crossErrorMessages = {};
+   this.customErrors?.forEach(cust =>{
+    const x = keys.includes(cust)
+    if(x){
+    
+      this.crossErrorMessages[cust] = this.control?.parent?.errors?.[cust];
+    }
+    
+   })
+  
+    
     if (!this.control) return false;
 
-    return (
-      this.control.invalid &&
-      (this.control.dirty || this.control.touched || this.submitted)
+      return ( Object.keys(this.crossErrorMessages).length > 0 ||
+      (this.control.invalid &&
+      (this.control.dirty || this.control.touched || this.submitted) )
     );
   }
-
   onChange(value: any): string {
     return value.value;
   }

@@ -3,42 +3,61 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class GetDataService {
-
-  data : any[] = [
+  data: any[] = [
     {
       Id : 1,
-      agree: "yes",
-      dob: "08-02-1950",
-      expiry: "03-06-2025",
-      gender : {type: 'Female'},
-      lastname : "asdasdasd",
-      middlename: "dsasdasd",
-      name: "ssdasd",
-      nationality: {name: 'Austria'},
-      passport: 2232332323
+      contactcurrent: 'no',
+      country: { name: 'Austria' },
+      email: 'wqw12q@gmail.com',
+      employmenttype: { type: 'Part-Time' },
+      iscurrent: 'yes',
+      name: 'Jale',
+      phone: 5684845164,
+      position: 'sdasdas',
+      startdate: '01-03-2025',
+      enddate: '01-05-2025',
+      supervisor: 'sasdasdasd',
     },
-     {
-      Id: 2,
-      agree: "yes",
-      dob: "15-10-2026",
-      expiry: "01-01-2016",
-      gender : {type: 'Female'},
-      name: "Kumari",
-      nationality: {name: 'Canada'},
-      passport: 8579641
-    }
-  ]
+    {
+      Id : 2,
+      contactcurrent: 'no',
+      country: { name: 'Austria' },
+      email: 'asse3q@gmail.com',
+      employmenttype: { type: 'Part-Time' },
+      iscurrent: 'yes',
+      name: 'Kane',
+      phone: 5684845164,
+      position: 'sdasdas',
+      startdate: '01-06-2021',
+      enddate: '01-01-2023',
+      supervisor: 'sasdasdasd',
+    },
+    {
+      Id : 3,
+      contactcurrent: 'no',
+      country: { name: 'Austria' },
+      email: 'r4weerq@gmail.com',
+      employmenttype: { type: 'Part-Time' },
+      iscurrent: 'no',
+      name: 'Will',
+      phone: 5684845164,
+      position: 'sdasdas',
+      startdate: '12-12-2012',
+      enddate : '01-05-2017',
+      supervisor: 'sasdasdasd',
+    },
+  ];
 
-  constructor(private http : HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  getCountry() : Observable<any> {
-    return this.http.get("https://www.apicountries.com/countries");
+  getCountry(): Observable<any> {
+    return this.http.get('https://www.apicountries.com/countries');
   }
 
-  getData()  {
+  getData() {
     return this.data;
   }
 }

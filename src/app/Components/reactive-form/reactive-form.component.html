@@ -15,12 +15,12 @@
             <app-prime-input class="col-12 col-md-6" label="Position" placeholder="Position" [isDisabled]=false
                 formControlName="position"></app-prime-input>
             <app-prime-filter-dropdown class="col-12 col-md-6" label="Country" placeHolder="Select country"
-                [optionItems]="countries()" optionLabel="name" formControlName="country"></app-prime-filter-dropdown>
+                [optionItems]="countries" optionLabel="name" formControlName="country"></app-prime-filter-dropdown>
             <app-prime-dropdown class="col-12 col-md-6" label="Employment Type" placeHolder="Select a type"
                 [optionItems]="employmentType()" optionLabel="type"
                 formControlName="employmenttype"></app-prime-dropdown>
             <app-prime-datepicker class="col-12 col-md-6" label="Start date" placeholder="Start date"
-                formControlName="startdate"></app-prime-datepicker>
+                formControlName="startdate" [customErrors]="customErrors['startdate']"></app-prime-datepicker>
             <app-prime-datepicker class="col-12 col-md-6" label="End date" placeholder="End date"
                 formControlName="enddate"></app-prime-datepicker>
             <app-prime-input class="col-12 col-md-6" label="Supervisor Name" placeholder="Supervisor Name"

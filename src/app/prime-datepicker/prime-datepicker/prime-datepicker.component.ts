@@ -26,7 +26,9 @@ export class PrimeDatepickerComponent<T> extends CustomControlValueAccessorDirec
   @Input() submitted: boolean = false;
   @Input() hasSmallText: boolean = false;
   @Input() smallText: string = '';
-  @Input() customErrorMessages: Record<string, string> = {};
+  @Input() customErrors: string[] = [];
+  crossErrorMessages: Record<string, string> = {};
+  // @Input() customErrorMessages: Record<string, string> = {};
   @Input() direction: 'ltr' | 'rtl' = 'ltr';
 
   @Input() dateFormat: string = 'dd-mm-yy';
@@ -40,14 +42,24 @@ export class PrimeDatepickerComponent<T> extends CustomControlValueAccessorDirec
   @Input() showButtonBar: boolean = false;
   @Input() disabledDates: any[] = [];
 
-  isError(): boolean {
- 
+  isError(): boolean {    
+   const keys = Object.keys(this.control?.parent?.errors ?? {});
+   this.crossErrorMessages = {};
+   this.customErrors?.forEach(cust =>{
+    const x = keys.includes(cust)
+    if(x){
+    
+      this.crossErrorMessages[cust] = this.control?.parent?.errors?.[cust];
+    }
+    
+   })
+  
     
     if (!this.control) return false;
 
-    return (
-      this.control.invalid &&
-      (this.control.dirty || this.control.touched || this.submitted)
+      return ( Object.keys(this.crossErrorMessages).length > 0 ||
+      (this.control.invalid &&
+      (this.control.dirty || this.control.touched || this.submitted) )
     );
   }
 

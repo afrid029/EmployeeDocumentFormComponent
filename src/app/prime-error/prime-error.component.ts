@@ -10,22 +10,32 @@ import { ValidationErrors } from '@angular/forms';
   imports : [CommonModule]
 })
 export class PrimeErrorComponent implements OnInit, OnChanges {
+[x: string]: any;
   @Input() errors: Record<string, ValidationErrors > | null = {};
-  @Input() customErrorMessages: Record<string, string> | any = {};
+  // @Input() crossErrorMessages: string[] = [];
+
+  @Input() crossErrorMessages: Record<string, string> | any = {};
   @Input() direction: 'ltr' | 'rtl' = 'ltr';
 
   errorMessages = signal<Record<string, string>>({});
+  customErrorMessages: Record<string, string> | any = {};
 
   ngOnInit(): void {
     this.setErrorMessages();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+// console.log(changes['customErrorMessages'].currentValue);
+
     if (changes['customErrorMessages'] && changes['customErrorMessages'].currentValue || (changes['errors'] && changes['errors'].currentValue) ) {
       this.setErrorMessages();
     }
     
   }
+
+  get hasCrossErrors(): boolean {
+  return Object.keys(this.crossErrorMessages).length > 0;
+}
 
 
   setErrorMessages(): void {
@@ -39,18 +49,32 @@ export class PrimeErrorComponent implements OnInit, OnChanges {
       passwordDoesNotMatch: 'Passwords do not match.',
     };
 
-    Object.keys(this.errors!).forEach((er) => {
+    // Object.keys(this.errors!).forEach((er) => {
+    //   const inc = Object.keys(baseErrorMessages).includes(er)
+    //   if(!inc) {
+    //     this.customErrorMessages[er]! = this.errors?.[er];
+    //   }
+    // })
+  if(this.errors) {
+      Object.keys(this.errors).forEach((er) => {
       const inc = Object.keys(baseErrorMessages).includes(er)
       if(!inc) {
         this.customErrorMessages[er]! = this.errors?.[er];
       }
     })
+  }
+
+    console.log(this.crossErrorMessages);
+    console.log(this.errors);
+    
+    
+
     this.errorMessages.set({
       ...baseErrorMessages,
       ...this.customErrorMessages,
     });
 
-    // console.log(this.errors);
+    // console.log(this.errorMessages());
     
   }
 }

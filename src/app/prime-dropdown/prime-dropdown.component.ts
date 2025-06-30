@@ -24,7 +24,8 @@ import { DataLoaderComponent } from '../data-loader/data-loader.component';
 export class PrimeDropdownComponent<T> extends CustomControlValueAccessorDirective<T> {
   @Input() label: string = '';
   @Input() direction: 'ltr'|'rtl' = 'ltr';
-  @Input() customErrorMessages: Record<string, string> = {};
+   @Input() customErrors: string[] = [];
+
   @Input() isRecommendedValue: string = '';
 
   @Input() optionItems: any[] = [];
@@ -42,12 +43,26 @@ export class PrimeDropdownComponent<T> extends CustomControlValueAccessorDirecti
 
   @Input() submitted: boolean = false;
 
-  isError(): boolean {
+  crossErrorMessages: Record<string, string> = {};
+
+   isError(): boolean {    
+   const keys = Object.keys(this.control?.parent?.errors ?? {});
+   this.crossErrorMessages = {};
+   this.customErrors?.forEach(cust =>{
+    const x = keys.includes(cust)
+    if(x){
+    
+      this.crossErrorMessages[cust] = this.control?.parent?.errors?.[cust];
+    }
+    
+   })
+  
+    
     if (!this.control) return false;
 
-    return (
-      this.control.invalid &&
-      (this.control.dirty || this.control.touched || this.submitted)
+      return ( Object.keys(this.crossErrorMessages).length > 0 ||
+      (this.control.invalid &&
+      (this.control.dirty || this.control.touched || this.submitted) )
     );
   }
 

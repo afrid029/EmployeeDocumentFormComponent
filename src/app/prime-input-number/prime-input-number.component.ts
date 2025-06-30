@@ -26,13 +26,15 @@ export class PrimeInputNumberComponent<T> extends CustomControlValueAccessorDire
   @Input() submitted: boolean = false;
   @Input() hasSmallText: boolean = false;
   @Input() smallText: string = '';
-  @Input() customErrorMessages: Record<string, string> = {};
-  @Input() uniqueId: string = '';
-  @Input() showRequiredIcon: boolean = true;
-  @Input() autoFocus: boolean = false;
-  @Input() isReadOnly: boolean = false;
-  @Input() direction: 'ltr' | 'rtl' = 'ltr';
-
+  // @Input() customErrorMessages: Record<string, string> = {};
+    @Input() customErrors: string[] = [];
+    @Input() uniqueId: string = '';
+    @Input() showRequiredIcon: boolean = true;
+    @Input() autoFocus: boolean = false;
+    @Input() isReadOnly: boolean = false;
+    @Input() direction: 'ltr' | 'rtl' = 'ltr';
+    
+    crossErrorMessages: Record<string, string> = {};
 
   isCurrentControlRequiredOnDefault(): boolean {
     if (this.control) {
@@ -44,12 +46,25 @@ export class PrimeInputNumberComponent<T> extends CustomControlValueAccessorDire
     return false;
   }
 
-  isError(): boolean {
+  
+  isError(): boolean {    
+   const keys = Object.keys(this.control?.parent?.errors ?? {});
+   this.crossErrorMessages = {};
+   this.customErrors?.forEach(cust =>{
+    const x = keys.includes(cust)
+    if(x){
+    
+      this.crossErrorMessages[cust] = this.control?.parent?.errors?.[cust];
+    }
+    
+   })
+  
+    
     if (!this.control) return false;
 
-    return (
-      this.control.invalid &&
-      (this.control.dirty || this.control.touched || this.submitted)
+      return ( Object.keys(this.crossErrorMessages).length > 0 ||
+      (this.control.invalid &&
+      (this.control.dirty || this.control.touched || this.submitted) )
     );
   }
 }

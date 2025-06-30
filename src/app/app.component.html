@@ -15,6 +15,6 @@
 
 @if(visible()) {
 
-    <app-reactive-form (onClose) = "onClose()" [editData]="filteredData()"></app-reactive-form>
+    <app-reactive-form (onClose) = "onClose()" (onCreate)="onCreate($event)" (onUpdate)="onUpdate($event)"[editData]="filteredData()"></app-reactive-form>
 }
 <router-outlet />

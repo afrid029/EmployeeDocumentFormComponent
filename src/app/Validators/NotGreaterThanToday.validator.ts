@@ -10,6 +10,8 @@ export function NotGreaterThanToday(control : AbstractControl) : ValidationError
         }
 
         const today = new Date();
+        today.setHours(0,0,0,0);
+        inputDate.setHours(0,0,0,0);
         const diffInMs = inputDate.getTime() - today.getTime();
         if(diffInMs > 0){
             return ({

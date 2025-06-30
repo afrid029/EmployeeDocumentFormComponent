@@ -20,20 +20,21 @@ import { PrimeErrorComponent } from '../prime-error/prime-error.component';
 })
 export class PrimeSelectButtonComponent<T> extends CustomControlValueAccessorDirective<T> {
   @Input() label: string | undefined;
-  @Input() size: "small" | "large"  = "small";
   @Input() showLabel: boolean = true;
   @Input() isDisabled: boolean = true;
   @Input() submitted: boolean = false;
   @Input() stateOptions : Record<string, string> [] = [];
   @Input() hasSmallText: boolean = false;
   @Input() smallText: string = '';
-  @Input() customErrorMessages: Record<string, string> = {};
-  @Input() uniqueId: string = '';
-  @Input() showRequiredIcon: boolean = true;
-  @Input() autoFocus: boolean = false;
-  @Input() isReadOnly: boolean = false;
-  @Input() direction: 'ltr' | 'rtl' = 'ltr';
-  @Input() allowEmpty : boolean = false;
+  // @Input() customErrorMessages: Record<string, string> = {};
+    @Input() customErrors: string[] = [];
+    @Input() uniqueId: string = '';
+    @Input() showRequiredIcon: boolean = true;
+    @Input() autoFocus: boolean = false;
+    @Input() isReadOnly: boolean = false;
+    @Input() direction: 'ltr' | 'rtl' = 'ltr';
+    @Input() allowEmpty : boolean = false;
+    crossErrorMessages: Record<string, string> = {};
 
   onChange(value: any): string {
     return value.value;
@@ -49,12 +50,24 @@ export class PrimeSelectButtonComponent<T> extends CustomControlValueAccessorDir
     return false;
   }
 
-   isError(): boolean {
+  isError(): boolean {    
+   const keys = Object.keys(this.control?.parent?.errors ?? {});
+   this.crossErrorMessages = {};
+   this.customErrors?.forEach(cust =>{
+    const x = keys.includes(cust)
+    if(x){
+    
+      this.crossErrorMessages[cust] = this.control?.parent?.errors?.[cust];
+    }
+    
+   })
+  
+    
     if (!this.control) return false;
 
-    return (
-      this.control.invalid &&
-      (this.control.dirty || this.control.touched )
+      return ( Object.keys(this.crossErrorMessages).length > 0 ||
+      (this.control.invalid &&
+      (this.control.dirty || this.control.touched || this.submitted) )
     );
   }
 }

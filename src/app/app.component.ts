@@ -36,14 +36,31 @@ ngOnInit(): void {
 
   }
 
+  editId : number | undefined;
+
   showDialog(Id:number) {
- 
+ this.editId = Id;
   const fetched = this.users().filter((p: any) => p.Id == Id)
     this.filteredData.set(fetched[0]);
     this.visible.set(true);
     
   }
 
+  
+  onCreate(data: any) {
+    console.log(data);
+    const Id = this.users().length + 1;
+    const newData = { Id: Id, ...data };
+    this.users.update((current) => [newData, ...current]);
+  }
+
+  onUpdate(data: any) {
+    this.users.update((user) =>
+      user.map((us) =>
+        us.Id === this.editId ? { Id: this.editId, ...data } : us
+      )
+    );
+  }
   
  onClose() {
     this.visible.set(false);

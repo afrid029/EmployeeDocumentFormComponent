@@ -23,21 +23,16 @@ import {
 import { PrimeFilterDropdownComponent } from '../../prime-filter-dropdown/prime-filter-dropdown/prime-filter-dropdown.component';
 import { PrimeDropdownComponent } from '../../prime-dropdown/prime-dropdown.component';
 import { PrimeDatepickerComponent } from '../../prime-datepicker/prime-datepicker/prime-datepicker.component';
-import { MinimumAge } from '../../Validators/MinimumAge.validator';
 import { PrimeSelectButtonComponent } from '../../prime-select-button/prime-select-button.component';
-import { passportExpiry } from '../../Validators/passportExpiry.validator';
 import { PrimeInputNumberComponent } from '../../prime-input-number/prime-input-number.component';
 import { ButtonComponent } from '../../prime-button/button/button.component';
-import { MaximumAge } from '../../Validators/MaximumAge.validator';
 import { GetDataService } from '../../Services/get-data.service';
-import { AcceptValidator } from '../../Validators/AcceptValidator.validator';
 import { DataLoaderComponent } from '../../data-loader/data-loader.component';
 import { MessageService } from 'primeng/api';
 import { Toast, ToastModule } from 'primeng/toast';
 import { ToastService } from '../../Services/toast.service';
 import { StartDateWithEndDate } from '../../Validators/StartDateWithEndDate.validator';
 import { GreaterThanDateValidator } from '../../Validators/GreaterThanDate.validator';
-import { EndDateWithStartDate } from '../../Validators/EndDateWithStartDate.validator';
 import { MinimumEmploymentPeriod } from '../../Validators/MinimumEmploymentPeriod.validator';
 import { NotGreaterThanToday } from '../../Validators/NotGreaterThanToday.validator';
 
@@ -69,6 +64,7 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
   disable = signal<boolean>(false);
   loading = signal<boolean>(false);
   dataLoaded = signal<boolean>(true);
+  customErrors : Record<string,string[]> = {};
 
   employmentType = signal<Record<string, string>[]> ([
     { type: 'Full-Time' },
@@ -137,6 +133,8 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() visible: boolean = true;
   @Input() editData: any = {};
   @Output() onClose = new EventEmitter();
+  @Output() onCreate = new EventEmitter<any>();
+  @Output() onUpdate = new EventEmitter<any>();
 
   constructor(private fb: FormBuilder, private dataServ: GetDataService, private toastServ : ToastService) {}
 
@@ -154,13 +152,16 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
       position : new FormControl('', [Validators.required]),
       country : new FormControl('', [Validators.required]),
       employmenttype : new FormControl('', [Validators.required]),
-      startdate : new FormControl('', [Validators.required,NotGreaterThanToday, StartDateWithEndDate,MinimumEmploymentPeriod, GreaterThanDateValidator(dob)]),
+      startdate : new FormControl('', [Validators.required,NotGreaterThanToday, GreaterThanDateValidator(dob)]),
+      // startdate : new FormControl('', [Validators.required,NotGreaterThanToday, StartDateWithEndDate,MinimumEmploymentPeriod, GreaterThanDateValidator(dob)]),
       enddate : new FormControl('', [Validators.required,NotGreaterThanToday, GreaterThanDateValidator(dob)]),
       supervisor : new FormControl(''),
       email : new FormControl('', [Validators.email]),
       phone : new FormControl(null),
       iscurrent : new FormControl('no', [Validators.required]),
       contactcurrent : new FormControl('', [])
+    }, {
+      validators : [StartDateWithEndDate, MinimumEmploymentPeriod]
     });
     // this.dynamicForm.get('expiry')?.setValidators([passportExpiry('dob')]);
     this.loadCustomValidators();
@@ -168,6 +169,7 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadCustomValidators() {
+    this.customErrors['startdate'] = ['EndDateGreaterThanStartDate', 'MinimumEmploymentPeriod']
     if (this.dynamicForm) {
       this.dynamicForm?.get('iscurrent')?.valueChanges.subscribe((data) => {
         console.log(data);
@@ -177,13 +179,13 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
           endDate?.disable();
           this.dynamicForm?.get('contactcurrent')?.addValidators(Validators.required);
           
-          this.dynamicForm?.get('startdate')?.hasValidator(MinimumEmploymentPeriod) 
-            ? this.dynamicForm.get('startdate')?.removeValidators(MinimumEmploymentPeriod)
+          this.dynamicForm?.hasValidator(MinimumEmploymentPeriod) 
+            ? this.dynamicForm?.removeValidators(MinimumEmploymentPeriod)
             : ''; 
-          this.dynamicForm?.get('startdate')?.hasValidator(StartDateWithEndDate) 
-            ? this.dynamicForm.get('startdate')?.removeValidators(StartDateWithEndDate)
+          this.dynamicForm?.hasValidator(StartDateWithEndDate) 
+            ? this.dynamicForm?.removeValidators(StartDateWithEndDate)
             : ''; 
-          this.dynamicForm?.get('startdate')?.updateValueAndValidity();
+          // this.dynamicForm?.get('startdate')?.updateValueAndValidity();
 
 
         } else {
@@ -191,23 +193,23 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
            this.dynamicForm?.get('contactcurrent')?.removeValidators(Validators.required);
            this.dynamicForm?.get('contactcurrent')?.updateValueAndValidity();
 
-            this.dynamicForm?.get('startdate')?.hasValidator(MinimumEmploymentPeriod) 
+            this.dynamicForm?.hasValidator(MinimumEmploymentPeriod) 
             ? ''
-            : this.dynamicForm?.get('startdate')?.addValidators(MinimumEmploymentPeriod); 
+            : this.dynamicForm?.addValidators(MinimumEmploymentPeriod); 
 
-            this.dynamicForm?.get('startdate')?.hasValidator(StartDateWithEndDate) 
+            this.dynamicForm?.hasValidator(StartDateWithEndDate) 
             ? ''
-            : this.dynamicForm?.get('startdate')?.addValidators(StartDateWithEndDate); 
+            : this.dynamicForm?.addValidators(StartDateWithEndDate); 
         }
       });
 
-      this.dynamicForm?.get('enddate')?.valueChanges.subscribe(data => {
-        const startDate = this.dynamicForm?.get('startdate');
-        startDate?.touched 
-          ? startDate.updateValueAndValidity()
-          :'';
+      // this.dynamicForm?.get('enddate')?.valueChanges.subscribe(data => {
+      //   const startDate = this.dynamicForm?.get('startdate');
+      //   startDate?.touched 
+      //     ? startDate.updateValueAndValidity()
+      //     :'';
        
-      });
+      // });
 
     }
   }
@@ -241,7 +243,7 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSubmit() {
     this.loading.set(true);
-    console.log(this.dynamicForm?.get('contactcurrent')?.valid);
+    console.log(this.dynamicForm?.value);
     
     if(this.dynamicForm?.invalid){
       
@@ -249,6 +251,11 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
       this.toastServ.showToastError("Invalid", "There are validation issues in your submission. Please review the form and try again.")
 
       this.loading.set(false);
+    }else {
+     this.editData && this.editData.Id 
+     ? this.onUpdate.emit(this.dynamicForm?.value)
+     : this.onCreate.emit(this.dynamicForm?.value);
+      this.onHide();
     }
    
   }
