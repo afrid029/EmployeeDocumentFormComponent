@@ -4,6 +4,23 @@
     .p-toast-message-error {
         background-color: $color-error-toast-body-bg !important;
     }
+
+    .p-toast-top-center {
+        width: 90% !important;
+    }
+
+    .p-toast-summary {
+        color: rgb(44, 1, 1) !important;
+    }
+
+    .p-toast-message-icon {
+        color: rgb(44, 1, 1) !important;
+    }
+
+    .p-toast-close-button {
+        color: rgb(44, 1, 1) !important;
+    }
+
     .p-toast-message-error .p-toast-detail {
         color: $color-error-toast-detail !important;
     }

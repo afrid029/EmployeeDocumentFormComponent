@@ -44,6 +44,8 @@ export class PrimeDatepickerComponent<T> extends CustomControlValueAccessorDirec
 
   isError(): boolean {    
    const keys = Object.keys(this.control?.parent?.errors ?? {});
+   console.log(Object.values(this.control?.parent?.errors ?? {}));
+   
    this.crossErrorMessages = {};
    this.customErrors?.forEach(cust =>{
     const x = keys.includes(cust)

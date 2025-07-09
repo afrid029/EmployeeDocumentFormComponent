@@ -3,9 +3,8 @@
         {{ errorMessages()[error.key] }}
     </li>
 </ul>
-<ul class="ul-validation-errors" [dir]="direction" *ngIf="hasCrossErrors">
-  <li *ngFor="let error of crossErrorMessages | keyvalue" class="error-feedback">
-    {{ error.value }}
+<ul class="ul-validation-errors" [dir]="direction" *ngIf="hasCrossErrors() && !errors">
+  <li class="error-feedback">
+    {{ error }}
   </li>
 </ul>
-

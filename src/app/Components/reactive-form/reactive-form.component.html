@@ -1,8 +1,4 @@
 
-<p-dialog header="Employment Document" [modal]="true" [(visible)]="visible" (onHide)="onHide()"
-    [style]="{ width: '55rem' }">
-<p-toast position="top-center"></p-toast>
-
     <app-data-loader [dataLoaded]="dataLoaded()"></app-data-loader>
 
     @if(dataLoaded()) {
@@ -19,10 +15,10 @@
             <app-prime-dropdown class="col-12 col-md-6" label="Employment Type" placeHolder="Select a type"
                 [optionItems]="employmentType()" optionLabel="type"
                 formControlName="employmenttype"></app-prime-dropdown>
-            <app-prime-datepicker class="col-12 col-md-6" label="Start date" placeholder="Start date"
+            <app-prime-datepicker class="col-12 col-md-6" label="Start Date" placeholder="Start Date"
                 formControlName="startdate" [customErrors]="customErrors['startdate']"></app-prime-datepicker>
-            <app-prime-datepicker class="col-12 col-md-6" label="End date" placeholder="End date"
-                formControlName="enddate"></app-prime-datepicker>
+            <app-prime-datepicker class="col-12 col-md-6" label="End Date" placeholder="End Date"
+                formControlName="enddate" [customErrors]="customErrors['enddate']"></app-prime-datepicker>
             <app-prime-input class="col-12 col-md-6" label="Supervisor Name" placeholder="Supervisor Name"
                 [isDisabled]=false formControlName="supervisor"></app-prime-input>
             <app-prime-input class="col-12 col-md-6" label="Supervisor Email" placeholder="Supervisor Email"
@@ -45,4 +41,3 @@
     </form>
     }
 
-</p-dialog>

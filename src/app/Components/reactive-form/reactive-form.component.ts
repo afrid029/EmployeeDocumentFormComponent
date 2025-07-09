@@ -3,21 +3,28 @@ import {
   AfterViewInit,
   Component,
   EventEmitter,
+  inject,
   Input,
   OnDestroy,
   OnInit,
   Output,
-  signal
+  signal,
 } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { DialogService, DynamicDialogStyle } from 'primeng/dynamicdialog';
+import {
+  DialogService,
+  DynamicDialogConfig,
+  DynamicDialogRef,
+  DynamicDialogStyle,
+} from 'primeng/dynamicdialog';
 import { PrimeInputComponent } from '../../prime-input/prime-input.component';
 import {
   FormBuilder,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { PrimeFilterDropdownComponent } from '../../prime-filter-dropdown/prime-filter-dropdown/prime-filter-dropdown.component';
@@ -31,10 +38,10 @@ import { DataLoaderComponent } from '../../data-loader/data-loader.component';
 import { MessageService } from 'primeng/api';
 import { Toast, ToastModule } from 'primeng/toast';
 import { ToastService } from '../../Services/toast.service';
-import { StartDateWithEndDate } from '../../Validators/StartDateWithEndDate.validator';
-import { GreaterThanDateValidator } from '../../Validators/GreaterThanDate.validator';
-import { MinimumEmploymentPeriod } from '../../Validators/MinimumEmploymentPeriod.validator';
-import { NotGreaterThanToday } from '../../Validators/NotGreaterThanToday.validator';
+import { DateComparer } from '../../Validators/DateComparer.validator';
+import { FormControlDateComparer } from '../../Validators/FormControlDateComparer.validator';
+import { FormControlDateDifference } from '../../Validators/FormControlDateDifference.validator';
+import { LengthRestriction } from '../../Validators/LengthRestriction.validator';
 
 @Component({
   selector: 'app-reactive-form',
@@ -51,11 +58,9 @@ import { NotGreaterThanToday } from '../../Validators/NotGreaterThanToday.valida
     PrimeInputNumberComponent,
     ButtonComponent,
     DataLoaderComponent,
-    Toast,
-    ToastModule
   ],
 
-  providers : [],
+  providers: [],
   templateUrl: './reactive-form.component.html',
   styleUrl: './reactive-form.component.scss',
 })
@@ -64,16 +69,18 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
   disable = signal<boolean>(false);
   loading = signal<boolean>(false);
   dataLoaded = signal<boolean>(true);
-  customErrors : Record<string,string[]> = {};
+  customErrors: Record<string, string[]> = {};
+  customValidators: ValidatorFn[] = [];
+  today: Date = new Date();
+  dob: Date = new Date(2012, 4, 24);
 
-  employmentType = signal<Record<string, string>[]> ([
-    { type: 'Full-Time' },
-    { type: 'Part-Time' },
-    { type: 'Temporary' },
-    { type: 'Fixed-Term Contracts' },
+  employmentType = signal<Record<string, string>[]>([
+    { type: 'Full Time' },
+    { type: 'Part Time' },
+    { type: 'Contract' },
   ]);
 
-  countries = signal<Record<string, string>[]> ([
+  countries = signal<Record<string, string>[]>([
     { name: 'Australia' },
     { name: 'Austria' },
     { name: 'Bangaladesh' },
@@ -124,119 +131,188 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
     { name: 'Canada' },
   ]);
 
-  stateOptions = signal<Record<string, string>[]> ([
-    { label: 'No', value: 'no' },
+  stateOptions = signal<Record<string, string>[]>([
     { label: 'Yes', value: 'yes' },
+    { label: 'No', value: 'no' },
   ]);
-  minDate = signal<Date | undefined> (undefined);
+  minDate = signal<Date | undefined>(undefined);
 
-  @Input() visible: boolean = true;
-  @Input() editData: any = {};
-  @Output() onClose = new EventEmitter();
-  @Output() onCreate = new EventEmitter<any>();
-  @Output() onUpdate = new EventEmitter<any>();
+  editData: any = {};
 
-  constructor(private fb: FormBuilder, private dataServ: GetDataService, private toastServ : ToastService) {}
+  private _fb: FormBuilder = inject(FormBuilder);
+  private _dataServ: GetDataService = inject(GetDataService);
+  private _toastServ: ToastService = inject(ToastService);
+  private _config: DynamicDialogConfig = inject(DynamicDialogConfig);
+  private _ref: DynamicDialogRef = inject(DynamicDialogRef);
 
   ngOnInit(): void {
-    const dob = new Date(2020,4,24);
-    const today = new Date();
-    this.minDate.set (new Date(
-      today.getFullYear() - 10,
-      today.getMonth(),
-      today.getDate()
-    ));
+    this.minDate.set(
+      new Date(
+        this.today.getFullYear() - 10,
+        this.today.getMonth(),
+        this.today.getDate()
+      )
+    );
 
-    this.dynamicForm = this.fb.group({
-      name: new FormControl('', [Validators.required]),
-      position : new FormControl('', [Validators.required]),
-      country : new FormControl('', [Validators.required]),
-      employmenttype : new FormControl('', [Validators.required]),
-      startdate : new FormControl('', [Validators.required,NotGreaterThanToday, GreaterThanDateValidator(dob)]),
+    this.dynamicForm = this._fb.group({
+      name: ['', [Validators.required]],
+      position: ['', [Validators.required]],
+      country: ['', [Validators.required]],
+      employmenttype: ['', [Validators.required]],
+      startdate: [
+        '',
+        [
+          Validators.required,
+          // NotGreaterThanToday,
+          DateComparer(
+            this.today,
+            'lte',
+            'Job start date cannot be greater than today'
+          ),
+          // GreaterThanDateValidator(this.dob),
+          DateComparer(
+            this.dob,
+            'gt',
+            'Job start date should be greater than date of birth'
+          ),
+        ],
+      ],
       // startdate : new FormControl('', [Validators.required,NotGreaterThanToday, StartDateWithEndDate,MinimumEmploymentPeriod, GreaterThanDateValidator(dob)]),
-      enddate : new FormControl('', [Validators.required,NotGreaterThanToday, GreaterThanDateValidator(dob)]),
-      supervisor : new FormControl(''),
-      email : new FormControl('', [Validators.email]),
-      phone : new FormControl(null),
-      iscurrent : new FormControl('no', [Validators.required]),
-      contactcurrent : new FormControl('', [])
-    }, {
-      validators : [StartDateWithEndDate, MinimumEmploymentPeriod]
+      enddate: [
+        '',
+        [
+          Validators.required,
+          // NotGreaterThanToday,
+          DateComparer(
+            this.today,
+            'lte',
+            'Job end date cannot be greater than today'
+          ),
+          // GreaterThanDateValidator(this.dob),
+          DateComparer(
+            this.dob,
+            'gt',
+            'Job end date should be greater than date of birth'
+          ),
+        ],
+      ],
+      supervisor: [''],
+      email: ['', [Validators.email]],
+      phone: [
+        null,
+        [
+          LengthRestriction(
+            7,
+            'gte',
+            'Phone number length should not be less than 7 digits.'
+          ),
+          LengthRestriction(
+            15,
+            'lte',
+            'Phone number length should not be greater than 15 digits.'
+          ),
+        ],
+      ],
+      iscurrent: ['no', [Validators.required]],
+      contactcurrent: ['no', []],
     });
-    // this.dynamicForm.get('expiry')?.setValidators([passportExpiry('dob')]);
+
+    this.customValidators = [
+      FormControlDateComparer(
+        'startdate',
+        'enddate',
+        'lte',
+        'Job start date cannot be greater than end date.'
+      ),
+      FormControlDateComparer(
+        'enddate',
+        'startdate',
+        'gte',
+        'Job end date cannot be less than start date.'
+      ),
+      FormControlDateComparer(
+        'enddate',
+        'startdate',
+        'neq',
+        'Job end date cannot be the same as start date.'
+      ),
+
+      FormControlDateDifference(
+        'enddate',
+        'startdate',
+        1,
+        'month',
+        'gte',
+        'Job start date and end date should have atleast one month gap'
+      ),
+    ];
+    this.dynamicForm.setValidators(this.customValidators);
+
     this.loadCustomValidators();
-  
   }
 
   loadCustomValidators() {
-    this.customErrors['startdate'] = ['EndDateGreaterThanStartDate', 'MinimumEmploymentPeriod']
+    this.customErrors['startdate'] = [
+      'FormControlDateComparerLte',
+    ];
+    this.customErrors['enddate'] = [
+      'FormControlDateComparerGte',
+      'FormControlDateComparerNeq',
+      'FormControlDateDifferenceGte',
+    ];
+
     if (this.dynamicForm) {
       this.dynamicForm?.get('iscurrent')?.valueChanges.subscribe((data) => {
         console.log(data);
         const endDate = this.dynamicForm?.get('enddate');
-        if(data == 'yes') {
+        if (data == 'yes') {
           endDate?.setValue(new Date());
           endDate?.disable();
-          this.dynamicForm?.get('contactcurrent')?.addValidators(Validators.required);
-          
-          this.dynamicForm?.hasValidator(MinimumEmploymentPeriod) 
-            ? this.dynamicForm?.removeValidators(MinimumEmploymentPeriod)
-            : ''; 
-          this.dynamicForm?.hasValidator(StartDateWithEndDate) 
-            ? this.dynamicForm?.removeValidators(StartDateWithEndDate)
-            : ''; 
-          // this.dynamicForm?.get('startdate')?.updateValueAndValidity();
-
-
+          this.dynamicForm
+            ?.get('contactcurrent')
+            ?.addValidators(Validators.required);
+          this.dynamicForm?.setValidators([]);
         } else {
           endDate?.enable();
-           this.dynamicForm?.get('contactcurrent')?.removeValidators(Validators.required);
-           this.dynamicForm?.get('contactcurrent')?.updateValueAndValidity();
+          this.dynamicForm
+            ?.get('contactcurrent')
+            ?.removeValidators(Validators.required);
 
-            this.dynamicForm?.hasValidator(MinimumEmploymentPeriod) 
-            ? ''
-            : this.dynamicForm?.addValidators(MinimumEmploymentPeriod); 
-
-            this.dynamicForm?.hasValidator(StartDateWithEndDate) 
-            ? ''
-            : this.dynamicForm?.addValidators(StartDateWithEndDate); 
+          this.dynamicForm?.setValidators(this.customValidators);
         }
+
+        this.dynamicForm?.get('contactcurrent')?.updateValueAndValidity();
       });
-
-      // this.dynamicForm?.get('enddate')?.valueChanges.subscribe(data => {
-      //   const startDate = this.dynamicForm?.get('startdate');
-      //   startDate?.touched 
-      //     ? startDate.updateValueAndValidity()
-      //     :'';
-       
-      // });
-
     }
+  }
+
+  filterCustomValidators(indexes: number[]): ValidatorFn[] {
+    return this.customValidators.filter(
+      (item, index) => !indexes.includes(index)
+    );
   }
 
   ngAfterViewInit(): void {
     // console.log(this.editData);
+    this.editData = this._config.data;
     if (this.editData && this.editData.Id) {
       this.dataLoaded.set(false);
-    
+
       setTimeout(() => {
-         this.dynamicForm?.patchValue(this.editData);
-      // this.dynamicForm?.get('dob')?.updateValueAndValidity(); 
-      this.loadCustomValidators();
-      this.dynamicForm?.markAllAsTouched();
-      this.dynamicForm?.updateValueAndValidity();
-      this.dataLoaded.set(true);
-      }, 3000)
-     
-     
- 
+        this.dynamicForm?.patchValue(this.editData);
+        // this.dynamicForm?.get('dob')?.updateValueAndValidity();
+        this.loadCustomValidators();
+        this.dynamicForm?.markAllAsTouched();
+        this.dynamicForm?.updateValueAndValidity();
+        this.dataLoaded.set(true);
+      }, 3000);
     }
   }
   ngOnDestroy(): void {
     this.editData = {};
   }
   getAllCountry() {
-    this.dataServ.getCountry().subscribe((data) => {
+    this._dataServ.getCountry().subscribe((data) => {
       this.countries.set(data);
     });
   }
@@ -244,23 +320,16 @@ export class ReactiveFormComponent implements OnInit, AfterViewInit, OnDestroy {
   onSubmit() {
     this.loading.set(true);
     console.log(this.dynamicForm?.value);
-    
-    if(this.dynamicForm?.invalid){
-      
-      
-      this.toastServ.showToastError("Invalid", "There are validation issues in your submission. Please review the form and try again.")
+
+    if (this.dynamicForm?.invalid) {
+      this._toastServ.showToastError(
+        'Invalid',
+        'There are validation issues in your submission. Please review the form and try again.'
+      );
 
       this.loading.set(false);
-    }else {
-     this.editData && this.editData.Id 
-     ? this.onUpdate.emit(this.dynamicForm?.value)
-     : this.onCreate.emit(this.dynamicForm?.value);
-      this.onHide();
+    } else {
+      this._ref.close(this.dynamicForm?.value);
     }
-   
-  }
-
-  onHide() {
-    this.onClose.emit();
   }
 }
